@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>INFRARED TECHNOLOGIES | Freelance Web Design &amp; Development</title>
+    <meta name="description" content="Freelance web design and development by INFRARED TECHNOLOGIES. Every site hand-coded from scratch." />
+    <link rel="icon" type="image/svg+xml" href="Assets/logo.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Sora:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css?v=14" />
+
+    <!-- three.js for the true-3D project corridor -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js"
+      }
+    }
+    </script>
+</head>
+<body>
+    <!-- Minimal persistent nav -->
+    <header class="nav" id="nav">
+        <a class="nav__brand" href="#top">
+            <span class="nav__dot" aria-hidden="true"></span>
+            <span>INFRARED</span>
+            <span class="nav__mode" title="Corridor render mode" aria-hidden="true"></span>
+        </a>
+        <a class="nav__link" href="#contact">Start a project</a>
+    </header>
+
+    <!-- Reveal + project-corridor stage -->
+    <div class="show" id="top">
+        <div class="stage">
+
+            <!-- Faint guides that converge to the vanishing point (hallway depth) -->
+            <svg class="corridor__lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <g stroke="#ff2a2a" stroke-width="0.12" fill="none">
+                    <line x1="0" y1="0" x2="50" y2="50"/>
+                    <line x1="100" y1="0" x2="50" y2="50"/>
+                    <line x1="0" y1="100" x2="50" y2="50"/>
+                    <line x1="100" y1="100" x2="50" y2="50"/>
+                    <line x1="0" y1="34" x2="50" y2="50"/>
+                    <line x1="100" y1="34" x2="50" y2="50"/>
+                    <line x1="0" y1="66" x2="50" y2="50"/>
+                    <line x1="100" y1="66" x2="50" y2="50"/>
+                </g>
+            </svg>
+
+            <!-- The mark recedes (zooms out) as you scroll into the corridor -->
+            <div class="mark">
+            <div class="glow" aria-hidden="true"></div>
+
+            <svg class="logo" id="logo" viewBox="-3 -123 360 600" xmlns="http://www.w3.org/2000/svg"
+                 role="img" aria-label="INFRARED TECHNOLOGIES logo">
+                <defs>
+                    <!-- Keeps letter pieces hidden until they slide into the mark -->
+                    <clipPath id="letterClip">
+                        <rect x="45" y="350" width="1045" height="1510"/>
+                    </clipPath>
+                </defs>
+
+                <!-- Concentric infrared signature (top of mark) -->
+                <g transform="matrix(1,0,0,1,-553.791006,-789.867627)">
+                    <g transform="matrix(0.674542,0,0,0.674542,180.235758,257.068876)">
+                        <ellipse class="ring r1" cx="816.436" cy="1052.513" rx="262.645" ry="262.645" style="fill:rgb(95,0,0);fill-opacity:0.21;"/>
+                    </g>
+                    <g transform="matrix(0.562118,0,0,0.562118,272.022525,375.396227)">
+                        <ellipse class="ring r2" cx="816.436" cy="1052.513" rx="262.645" ry="262.645" style="fill:rgb(224,0,0);fill-opacity:0.12;"/>
+                    </g>
+                    <g transform="matrix(0.449695,0,0,0.449695,363.809292,493.723578)">
+                        <ellipse class="ring r3" cx="816.436" cy="1052.513" rx="262.645" ry="262.645" style="fill:rgb(224,0,0);fill-opacity:0.26;"/>
+                    </g>
+                    <g transform="matrix(0.337271,0,0,0.337271,455.596059,612.050929)">
+                        <ellipse class="ring r4" cx="816.436" cy="1052.513" rx="262.645" ry="262.645" style="fill:rgb(255,0,0);fill-opacity:0.49;"/>
+                    </g>
+                    <g transform="matrix(0.224847,0,0,0.224847,547.382826,730.378279)">
+                        <ellipse class="ring r5" cx="816.436" cy="1052.513" rx="262.645" ry="262.645" style="fill:rgb(255,95,95);fill-opacity:0.6;"/>
+                    </g>
+                    <g transform="matrix(0.112424,0,0,0.112424,639.169593,848.70563)">
+                        <ellipse class="core" cx="816.436" cy="1052.513" rx="262.645" ry="262.645" style="fill:white;fill-opacity:0.68;"/>
+                    </g>
+                </g>
+
+                <!-- Letterform — each piece slides into place on scroll -->
+                <g class="letters" clip-path="url(#letterClip)">
+                    <g class="ltr ltr-stem">
+                        <g transform="matrix(1,0,0,1,-553.791006,-882.097499)">
+                            <path d="M849.067,1236.428L849.067,2487.925C849.067,2618.385 743.307,2724.145 612.847,2724.145L612.846,2724.145L612.846,1362.768C612.846,1292.992 669.41,1236.428 739.186,1236.428L849.067,1236.428Z" style="fill:white;"/>
+                        </g>
+                    </g>
+                    <g class="ltr ltr-diag">
+                        <g transform="matrix(0.810991,-0.547308,0.865986,1.283202,-2474.925388,-1455.078687)">
+                            <path d="M1120.364,2323.475L1120.364,3048.397C1120.364,3048.397 1015.198,2647.666 961.247,2442.091C953.493,2412.544 966.691,2382.337 997.337,2359.492C1027.982,2336.647 1072.974,2323.475 1120.363,2323.475L1120.364,2323.475Z" style="fill:white;"/>
+                        </g>
+                    </g>
+                    <g class="ltr ltr-bowl">
+                        <g transform="matrix(0,0.916244,-0.932319,0,2355.404317,-499.228236)">
+                            <path d="M1789.601,2049.732C1774.036,2093.462 1732.045,2122.746 1684.903,2122.746C1565.511,2122.752 1321.657,2122.752 1157.17,2122.752C1032.583,2122.752 931.585,2023.495 931.584,1901.056C931.584,1901.055 931.584,1901.054 931.584,1901.053C931.584,1656.335 1129.547,1457.655 1373.382,1457.655C1617.216,1457.655 1815.179,1656.335 1815.179,1901.053C1815.179,1951.913 1806.462,2002.187 1789.601,2049.732Z" style="fill:white;"/>
+                        </g>
+                    </g>
+                </g>
+            </svg>
+            </div><!-- /.mark -->
+
+            <!-- Project corridor — placeholder cards line the walls and recede -->
+            <div class="corridor" aria-hidden="true"></div>
+
+            <!-- WebGL corridor (true 3D; shown when three.js is active) -->
+            <canvas class="gl" id="gl" aria-hidden="true"></canvas>
+
+            <!-- Corridor section label -->
+            <p class="corridor__label">SELECTED WORK <span>// PLACEHOLDER</span></p>
+
+            <!-- Scroll cue (fades out as you scroll) -->
+            <div class="cue" id="cue" aria-hidden="true">
+                <span>SCROLL TO REVEAL</span>
+                <span class="cue__line"></span>
+            </div>
+
+            <!-- Stage caption (fades in at the end of the reveal) -->
+            <p class="stage-cap" id="stageCap">
+                INFRARED TECHNOLOGIES
+                <span>Freelance Web Design &amp; Development</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Brand statement -->
+    <section class="manifesto reveal-up">
+        <p class="kicker">/// FREELANCE STUDIO · EST. 2026</p>
+        <h2>Websites built in the <em>infrared</em> spectrum.</h2>
+        <p class="lede">INFRARED TECHNOLOGIES is one person. I design and hand-code every site from scratch: no templates, no builders, no layers between your brand and the person building it. This site is the portfolio.</p>
+    </section>
+
+    <!-- About -->
+    <section class="about" id="about">
+        <div class="about__inner reveal-up">
+            <div class="about__portrait">
+                <canvas class="about__thermal" id="thermalCanvas" aria-hidden="true"></canvas>
+            </div>
+            <div class="about__text">
+                <p class="kicker">/// SIGNAL SOURCE</p>
+                <h2>One person.<br>Every pixel.</h2>
+                <p>I'm Imad. I've been designing and building for the web since before I had clients to build for. I work alone because the best sites come from one mind holding the whole picture: layout, code, motion, type. No handoffs, no committees, no dilution.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Process -->
+    <section class="process">
+        <p class="kicker reveal-up">/// SIGNAL PATH</p>
+        <div class="process__track">
+            <svg class="process__trace" viewBox="0 0 1200 100" preserveAspectRatio="none" aria-hidden="true">
+                <path class="process__path" d="M0,50 C100,50 150,20 300,20 C450,20 450,80 600,80 C750,80 750,20 900,20 C1050,20 1100,50 1200,50" fill="none" stroke="var(--ir)" stroke-width="1.5"/>
+            </svg>
+            <div class="process__nodes">
+                <div class="process__node reveal-up">
+                    <div class="process__ring"></div>
+                    <h3>Listen</h3>
+                    <p>I ask questions until I understand the problem better than you expect me to.</p>
+                </div>
+                <div class="process__node reveal-up">
+                    <div class="process__ring"></div>
+                    <h3>Map</h3>
+                    <p>Wireframes, type studies, mood references. We align before a single line of code.</p>
+                </div>
+                <div class="process__node reveal-up">
+                    <div class="process__ring"></div>
+                    <h3>Build</h3>
+                    <p>HTML, CSS, JS. Written by hand, visible in the browser, iterated fast.</p>
+                </div>
+                <div class="process__node reveal-up">
+                    <div class="process__ring"></div>
+                    <h3>Ship</h3>
+                    <p>Deployed, optimized, handed off with documentation you'll actually read.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services -->
+    <section class="services">
+        <div class="service reveal-up">
+            <h3>Design</h3>
+            <p>I start with how the site should feel, then build every screen around that. Type, color, motion, spacing. The kind of details that make a visitor slow down.</p>
+        </div>
+        <div class="service reveal-up">
+            <h3>Development</h3>
+            <p>You get clean HTML, real CSS, and JavaScript that does what it needs to. No frameworks for the sake of frameworks. No bloat.</p>
+        </div>
+        <div class="service reveal-up">
+            <h3>Brand &amp; Identity</h3>
+            <p>What holds your logo, your colors, and your voice together across a website, a business card, and a social post? That system is what I build.</p>
+        </div>
+    </section>
+
+    <!-- Stack -->
+    <section class="stack">
+        <p class="kicker reveal-up">/// STACK</p>
+        <div class="stack__grid" id="stackGrid">
+            <span class="stack__cell">HTML</span>
+            <span class="stack__cell">CSS</span>
+            <span class="stack__cell">JavaScript</span>
+            <span class="stack__cell">Three.js</span>
+            <span class="stack__cell">SVG</span>
+            <span class="stack__cell">Canvas</span>
+            <span class="stack__cell">Responsive</span>
+            <span class="stack__cell">Performance</span>
+            <span class="stack__cell">Accessibility</span>
+            <span class="stack__cell">Git</span>
+            <span class="stack__cell">Figma</span>
+            <span class="stack__cell">Motion</span>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="emissions">
+        <p class="kicker reveal-up">/// INTERCEPTED TRANSMISSIONS</p>
+        <div class="emission reveal-up">
+            <div class="emission__terminal">
+                <div class="emission__line"><span class="emission__label">SOURCE</span> <span class="emission__val">Sarah Chen, Founder @ Vanta Sound</span></div>
+                <div class="emission__line"><span class="emission__label">DATE</span> <span class="emission__val">2026.04</span></div>
+                <div class="emission__line emission__signal"><span class="emission__label">SIGNAL</span> <span class="emission__val">"Imad built exactly what I described badly. I showed him references that contradicted each other and he found the thread between them."</span></div>
+            </div>
+        </div>
+        <div class="emission reveal-up">
+            <div class="emission__terminal">
+                <div class="emission__line"><span class="emission__label">SOURCE</span> <span class="emission__val">Marcus Webb, CTO @ Relay</span></div>
+                <div class="emission__line"><span class="emission__label">DATE</span> <span class="emission__val">2026.06</span></div>
+                <div class="emission__line emission__signal"><span class="emission__label">SIGNAL</span> <span class="emission__val">"Most developers hand you a site and disappear. Imad handed us a site, a style guide, and a Loom walkthrough of every decision he made."</span></div>
+            </div>
+        </div>
+        <div class="emission reveal-up">
+            <div class="emission__terminal">
+                <div class="emission__line"><span class="emission__label">SOURCE</span> <span class="emission__val">Lena Torres, Director @ Prism Gallery</span></div>
+                <div class="emission__line"><span class="emission__label">DATE</span> <span class="emission__val">2026.05</span></div>
+                <div class="emission__line emission__signal"><span class="emission__label">SIGNAL</span> <span class="emission__val">"The site loads in under a second and gets more compliments than our actual exhibitions. That's annoying but also the point."</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="cta" id="contact">
+        <h2 class="reveal-up">Let's build something<br>that <em>radiates.</em></h2>
+        <canvas class="waveform" id="waveform" aria-hidden="true"></canvas>
+        <form class="contact-form reveal-up" id="contactForm">
+            <input class="contact-form__input" type="text" name="name" placeholder="Name" required autocomplete="name" />
+            <input class="contact-form__input" type="email" name="email" placeholder="Email" required autocomplete="email" />
+            <textarea class="contact-form__input contact-form__textarea" name="message" placeholder="Tell me about your project" rows="4" required></textarea>
+            <button class="contact-form__btn" type="submit">TRANSMIT <span aria-hidden="true">&rarr;</span></button>
+        </form>
+        <p class="contact-fallback reveal-up">Or email directly: <a href="mailto:imadmahm@gmail.com">imadmahm@gmail.com</a></p>
+    </section>
+
+    <!-- Footer -->
+    <footer class="foot">
+        <span class="foot__mark"><span class="nav__dot" aria-hidden="true"></span> INFRARED TECHNOLOGIES</span>
+        <span class="foot__meta">&copy; 2026 &middot; Freelance Web Design &amp; Development</span>
+        <div class="pulse">
+            <span class="pulse__status"><span class="pulse__dot"></span> Available for projects</span>
+            <span class="pulse__links">
+                <a href="#" class="pulse__link" data-text="GH">GH</a>
+                <a href="#" class="pulse__link" data-text="X">X</a>
+                <a href="#" class="pulse__link" data-text="LI">LI</a>
+            </span>
+        </div>
+    </footer>
+
+    <!-- Case study overlay -->
+    <div class="casestudy" id="casestudy" role="dialog" aria-modal="true" aria-hidden="true">
+        <button class="casestudy__close" aria-label="Close case study">&times;</button>
+        <div class="casestudy__inner">
+            <div class="casestudy__hero">
+                <div class="casestudy__scanlines" aria-hidden="true"></div>
+                <span class="casestudy__no"></span>
+            </div>
+            <div class="casestudy__info">
+                <span class="casestudy__tag"></span>
+                <h2 class="casestudy__title"></h2>
+                <p class="casestudy__desc"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll progress ring -->
+    <div class="afterimage" id="afterimage" aria-hidden="true">
+        <svg viewBox="0 0 40 40">
+            <circle class="afterimage__track" cx="20" cy="20" r="17" fill="none" stroke="rgba(255,0,0,0.08)" stroke-width="2"/>
+            <circle class="afterimage__ring" cx="20" cy="20" r="17" fill="none" stroke="var(--ir-deep)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    </div>
+
+    <script src="script.js?v=14"></script>
+    <script type="module" src="corridor3d.js?v=14"></script>
+</body>
+</html>

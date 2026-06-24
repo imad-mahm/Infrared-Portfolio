@@ -1,0 +1,44 @@
+[
+  {
+    "id": "01",
+    "title": "Project 01",
+    "tag": "Web Design",
+    "description": "Distinctive interface design: layout, type, and motion tuned to the brand.",
+    "img": ""
+  },
+  {
+    "id": "02",
+    "title": "Project 02",
+    "tag": "Web Development",
+    "description": "Hand-built, performant front-end with smooth, accessible interactions.",
+    "img": ""
+  },
+  {
+    "id": "03",
+    "title": "Project 03",
+    "tag": "Brand & Identity",
+    "description": "Logo, system, and the small details that make a brand feel inevitable.",
+    "img": ""
+  },
+  {
+    "id": "04",
+    "title": "Project 04",
+    "tag": "E-Commerce",
+    "description": "Conversion-focused storefront with a fast, frictionless checkout.",
+    "img": ""
+  },
+  {
+    "id": "05",
+    "title": "Project 05",
+    "tag": "Landing Page",
+    "description": "A single-screen story, built to convert at first glance.",
+    "img": ""
+  },
+  {
+    "id": "06",
+    "title": "Project 06",
+    "tag": "Web App",
+    "description": "Product UI with clean architecture and real-time, responsive views.",
+    "img": ""
+  }
+]
