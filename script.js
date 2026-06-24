@@ -483,7 +483,9 @@
         }
         sizeWave();
 
+        var wRaf = 0;
         function drawWave(ts) {
+            wRaf = requestAnimationFrame(drawWave);
             wCtx.clearRect(0, 0, wW, wH);
             wPhase += 0.03;
             wAmplitude *= 0.96;
@@ -504,10 +506,18 @@
             wCtx.strokeStyle = "rgba(255, 0, 0, 0.35)";
             wCtx.lineWidth = 1.5;
             wCtx.stroke();
-
-            requestAnimationFrame(drawWave);
         }
-        requestAnimationFrame(drawWave);
+        /* Only animate the waveform while the contact section is on-screen. */
+        function startWave() { if (!wRaf) wRaf = requestAnimationFrame(drawWave); }
+        function stopWave() { if (wRaf) { cancelAnimationFrame(wRaf); wRaf = 0; } }
+        if ("IntersectionObserver" in window) {
+            var waveIO = new IntersectionObserver(function (entries) {
+                if (entries[0].isIntersecting) startWave(); else stopWave();
+            }, { threshold: 0 });
+            waveIO.observe(waveCanvas);
+        } else {
+            startWave();
+        }
 
         var formInputs = document.querySelectorAll(".contact-form__input");
         formInputs.forEach(function (inp) {
@@ -553,106 +563,350 @@
     });
 
     /* ==================================================================
-       FEATURE 2: Thermal conduction sim — click injects heat that spreads
+       FEATURE 2: Thermal portrait canvas — isometric voxel heatmap
+
+       A grid of data points (a heat-conduction field) drawn as a field of
+       3D cubes in isometric projection. Each cube shows three faces —
+       top (lightest), left (medium), right (darkest) — and its height /
+       extrusion is proportional to that cell's value.
+
+         · classic 2:1 isometric tiles; cubes drawn back-to-front so they
+           occlude correctly;
+         · hovering a cube pops it up an extra 12px and highlights its top
+           face; each click on a cube raises it one step taller (up to a
+           ceiling) and sends out a ripple like the automatic ones;
+         · ambient ripples (auto on a timer) only warm the field and fade to
+           zero; click-built height relaxes back down slowly. No constant
+           source — left alone, everything settles to the resting platform.
        ================================================================== */
     var thermalCanvas = document.getElementById("thermalCanvas");
     if (thermalCanvas && !reduce) {
         var tCtx = thermalCanvas.getContext("2d");
-        var COLS = 72;
-        var ROWS = Math.round(COLS * 4 / 3);
-        thermalCanvas.width = COLS;
-        thermalCanvas.height = ROWS;
 
-        var grid = new Float32Array(COLS * ROWS);
-        var buf = new Float32Array(COLS * ROWS);
+        var COLS = 14;
+        var ROWS = 14;                  /* square grid → iso diamond */
+        var CELLS = COLS * ROWS;
 
-        var DIFFUSE = 0.18;
-        var COOL = 0.002;
-        var AMBIENT = 0.006;
+        /* Double-buffered heat field. grid = current, buf = next. */
+        var grid = new Float32Array(CELLS);
+        var buf = new Float32Array(CELLS);
 
-        for (var sy = 0; sy < ROWS; sy++) {
-            for (var sx = 0; sx < COLS; sx++) {
-                var sdx = sx / COLS - 0.5;
-                var sdy = sy / ROWS - 0.4;
-                var sd = Math.sqrt(sdx * sdx + sdy * sdy);
-                grid[sy * COLS + sx] = Math.max(0, 0.35 * (1 - sd * 3.2));
-            }
-        }
+        /* Click-built height per cell — separate from the diffusing heat so a
+           clicked bar stays a sharp tower. Each click adds CLICK_STEP up to
+           HMAX, then it relaxes slowly (STACK_COOL) back down. */
+        var stack = new Float32Array(CELLS);
+        var HMAX = 3;                   /* tallest a bar can get (value units) */
+        var CLICK_STEP = 0.5;           /* height one click adds               */
+        var STACK_COOL = 0.0015;        /* per-frame relaxation of click height */
 
-        function simStep() {
-            for (var y = 1; y < ROWS - 1; y++) {
-                for (var x = 1; x < COLS - 1; x++) {
-                    var i = y * COLS + x;
-                    var avg = (grid[i - 1] + grid[i + 1] + grid[i - COLS] + grid[i + COLS]) * 0.25;
-                    var v = grid[i] + DIFFUSE * (avg - grid[i]) - COOL;
+        var DIFFUSE = 0.14;             /* how fast heat spreads to neighbours */
+        var COOLING = 0.005;            /* flat heat lost per cell per frame    */
 
-                    var dx = x / COLS - 0.5;
-                    var dy = y / ROWS - 0.4;
-                    var d = Math.sqrt(dx * dx + dy * dy);
-                    if (d < 0.18) v += AMBIENT * (1 - d / 0.18);
+        /* MIN_EXT / EXT_SPAN scale with tile size (set in sizeThermal) so the
+           cubes keep their proportions as the element grows. HOVER_POP is a
+           fixed 12px lift, as specified. */
+        var MIN_EXT = 4;                /* resting cube height (px)            */
+        var EXT_SPAN = 28;              /* extra height at value 1 (px)        */
+        var HOVER_POP = 12;             /* hovered cube rises this much (px)   */
 
-                    buf[i] = v < 0 ? 0 : v > 1 ? 1 : v;
-                }
-            }
-            var tmp = grid; grid = buf; buf = tmp;
-        }
-
-        function injectHeat(nx, ny) {
-            var gx = Math.round(nx * (COLS - 1));
-            var gy = Math.round(ny * (ROWS - 1));
-            var r = 6;
-            for (var dy = -r; dy <= r; dy++) {
-                for (var dx = -r; dx <= r; dx++) {
-                    var px = gx + dx, py = gy + dy;
-                    if (px < 0 || px >= COLS || py < 0 || py >= ROWS) continue;
-                    var dd = Math.sqrt(dx * dx + dy * dy) / r;
-                    if (dd > 1) continue;
-                    var idx = py * COLS + px;
-                    grid[idx] = Math.min(1, grid[idx] + (1 - dd * dd) * 0.9);
-                }
-            }
-        }
-
-        function renderThermal() {
-            var img = tCtx.createImageData(COLS, ROWS);
-            var px = img.data;
-            for (var i = 0; i < grid.length; i++) {
-                var h = grid[i];
-                var o = i * 4;
-                if (h < 0.33) {
-                    var t = h / 0.33;
-                    px[o] = Math.round(t * 140);
-                    px[o + 1] = 0;
-                    px[o + 2] = 0;
-                } else if (h < 0.66) {
-                    var t = (h - 0.33) / 0.33;
-                    px[o] = Math.round(140 + t * 115);
-                    px[o + 1] = Math.round(t * 50);
-                    px[o + 2] = 0;
-                } else {
-                    var t = (h - 0.66) / 0.34;
-                    px[o] = 255;
-                    px[o + 1] = Math.round(50 + t * 200);
-                    px[o + 2] = Math.round(t * 180);
-                }
-                px[o + 3] = Math.round(20 + h * 235);
-            }
-            tCtx.putImageData(img, 0, 0);
-        }
-
-        thermalCanvas.addEventListener("click", function (e) {
+        /* Display size + iso geometry, refreshed on resize. */
+        var W = 0, H = 0, dpr = 1, hw = 1, hh = 1, originX = 0, originY = 0;
+        function sizeThermal() {
             var rect = thermalCanvas.getBoundingClientRect();
-            var nx = (e.clientX - rect.left) / rect.width;
-            var ny = (e.clientY - rect.top) / rect.height;
-            injectHeat(nx, ny);
+            var cssW = rect.width || thermalCanvas.clientWidth;
+            var cssH = rect.height || thermalCanvas.clientHeight;
+            if (!cssW || !cssH) return;
+            W = cssW;
+            H = cssH;
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            thermalCanvas.width = Math.round(cssW * dpr);
+            thermalCanvas.height = Math.round(cssH * dpr);
+            tCtx.setTransform(dpr, 0, 0, dpr, 0, 0); /* draw in CSS px */
+
+            hw = W / (COLS + ROWS);     /* iso tile half-width  */
+            hh = hw * 0.5;              /* iso tile half-height (2:1) */
+            MIN_EXT = hw * 0.3;         /* keep cube proportions at any size */
+            EXT_SPAN = hw * 1.7;
+            originX = W / 2;
+            var diamondH = (COLS - 1 + ROWS - 1) * hh;
+            /* Centre vertically, biased down so tall back-row cubes have
+               headroom above the diamond. */
+            originY = (H - diamondH) / 2 + EXT_SPAN * 0.35;
+        }
+        sizeThermal();
+        window.addEventListener("resize", sizeThermal);
+
+        /* ---- Animated pulses: expanding, fading heat rings --------------- */
+        var pulses = [];
+        function spawnPulse(gx, gy, maxR, life, strength) {
+            pulses.push({ x: gx, y: gy, maxR: maxR, life: life, age: 0, strength: strength });
+        }
+        /* One ripple at (gx, gy) — same feel whether auto or click-spawned. */
+        function spawnRipple(gx, gy) {
+            spawnPulse(gx, gy,
+                2 + Math.random() * 1.4,    /* small radius → tight pulse */
+                800 + Math.random() * 500,
+                0.85
+            );
+        }
+        function autoPulse() {
+            spawnRipple(Math.random() * COLS, Math.random() * ROWS);
+        }
+
+        /* Deposit one frame of a pulse: a soft ring expanding to maxR with a
+           warm interior fill, intensity fading as it grows. Additive, so
+           overlapping pulses combine — and all of it still cools to zero.   */
+        function applyPulse(p) {
+            var t = p.age / p.life;
+            var ease = 1 - (1 - t) * (1 - t);       /* expand fast, then ease  */
+            var ringR = ease * p.maxR;
+            var fade = 1 - t;
+            var rw = p.maxR * 0.5 + 1;              /* ring thickness          */
+            var reach = ringR + rw;
+            var minX = Math.max(0, Math.floor(p.x - reach));
+            var maxX = Math.min(COLS - 1, Math.ceil(p.x + reach));
+            var minY = Math.max(0, Math.floor(p.y - reach));
+            var maxY = Math.min(ROWS - 1, Math.ceil(p.y + reach));
+            for (var y = minY; y <= maxY; y++) {
+                for (var x = minX; x <= maxX; x++) {
+                    var dx = x - p.x;
+                    var dy = y - p.y;
+                    var d = Math.sqrt(dx * dx + dy * dy);
+                    var edge = 1 - Math.abs(d - ringR) / rw;
+                    if (edge < 0) edge = 0;
+                    var fill = d < ringR ? (1 - d / ringR) : 0;
+                    var amt = p.strength * fade * (edge * edge * 0.5 + fill * 0.3) * 0.2;
+                    if (amt > 0) grid[y * COLS + x] += amt;
+                }
+            }
+        }
+        function updatePulses(dt) {
+            for (var k = pulses.length - 1; k >= 0; k--) {
+                var p = pulses[k];
+                p.age += dt;
+                if (p.age >= p.life) { pulses.splice(k, 1); continue; }
+                applyPulse(p);
+            }
+        }
+
+        /* One diffusion + cooling step: buf = step(grid), then swap. */
+        function step() {
+            for (var y = 0; y < ROWS; y++) {
+                for (var x = 0; x < COLS; x++) {
+                    var i = y * COLS + x;
+                    var v = grid[i];
+                    var left = x > 0 ? grid[i - 1] : v;
+                    var right = x < COLS - 1 ? grid[i + 1] : v;
+                    var up = y > 0 ? grid[i - COLS] : v;
+                    var down = y < ROWS - 1 ? grid[i + COLS] : v;
+                    var avg = (left + right + up + down) * 0.25;
+                    var next = v + DIFFUSE * (avg - v) - COOLING;
+                    if (next < 0) next = 0;
+                    if (next > 1) next = 1;
+                    buf[i] = next;
+                }
+            }
+            var tmp = grid;
+            grid = buf;
+            buf = tmp;
+
+            /* Relax click-built height slowly so towers eventually settle. */
+            for (var s = 0; s < CELLS; s++) {
+                if (stack[s] > 0) {
+                    stack[s] -= STACK_COOL;
+                    if (stack[s] < 0) stack[s] = 0;
+                }
+            }
+        }
+
+        /* Displayed value of a cell = diffusing heat + click-built height,
+           capped at the height ceiling. Drives both colour and extrusion. */
+        function cellVal(i) {
+            var v = grid[i] + stack[i];
+            return v > HMAX ? HMAX : v;
+        }
+
+        /* Dim thermal ramp (faint red → amber, capped below white) so cubes
+           glow without blowing out. Cold cells keep a dark-red floor so the
+           iso platform stays subtly visible. Writes into rgb[]. */
+        var rgb = [0, 0, 0];
+        function ramp(h) {
+            var r, g, b;
+            if (h < 0.35) {
+                var t0 = h / 0.35;
+                r = 24 + 106 * t0; g = 4 * t0; b = 4;             /* dark red */
+            } else if (h < 0.7) {
+                var t1 = (h - 0.35) / 0.35;
+                r = 130 + 95 * t1; g = 4 + 34 * t1; b = 4;        /* red       */
+            } else {
+                var t2 = (h - 0.7) / 0.3; if (t2 > 1) t2 = 1;
+                r = 225 + 25 * t2; g = 38 + 110 * t2; b = 4 + 41 * t2; /* amber */
+            }
+            rgb[0] = r; rgb[1] = g; rgb[2] = b;
+        }
+        function shadeStr(r, g, b, m) {
+            r *= m; g *= m; b *= m;
+            return "rgb(" + (r > 255 ? 255 : r | 0) + "," + (g > 255 ? 255 : g | 0) + "," + (b > 255 ? 255 : b | 0) + ")";
+        }
+
+        /* ---- Isometric cube geometry ------------------------------------ */
+        function isoX(col, row) { return originX + (col - row) * hw; }
+        function isoY(col, row) { return originY + (col + row) * hh; }
+
+        /* Point-in-convex-quad test (consistent winding → all cross products
+           share a sign). Used for hover hit-testing the cube faces.        */
+        function inQuad(px, py, x1, y1, x2, y2, x3, y3, x4, y4) {
+            var s1 = (x2 - x1) * (py - y1) - (y2 - y1) * (px - x1);
+            var s2 = (x3 - x2) * (py - y2) - (y3 - y2) * (px - x2);
+            var s3 = (x4 - x3) * (py - y3) - (y4 - y3) * (px - x3);
+            var s4 = (x1 - x4) * (py - y4) - (y1 - y4) * (px - x4);
+            var hasNeg = s1 < 0 || s2 < 0 || s3 < 0 || s4 < 0;
+            var hasPos = s1 > 0 || s2 > 0 || s3 > 0 || s4 > 0;
+            return !(hasNeg && hasPos);
+        }
+
+        /* Does (mx,my) fall on any visible face of the cube at (col,row)? */
+        function hitCube(col, row, h, mx, my) {
+            var ext = MIN_EXT + h * EXT_SPAN;
+            var cx = isoX(col, row);
+            var gy = isoY(col, row);    /* ground centre */
+            var ty = gy - ext;          /* top centre    */
+            /* top face */
+            if (inQuad(mx, my, cx, ty - hh, cx + hw, ty, cx, ty + hh, cx - hw, ty)) return true;
+            /* left face */
+            if (inQuad(mx, my, cx - hw, ty, cx, ty + hh, cx, gy + hh, cx - hw, gy)) return true;
+            /* right face */
+            if (inQuad(mx, my, cx, ty + hh, cx + hw, ty, cx + hw, gy, cx, gy + hh)) return true;
+            return false;
+        }
+
+        /* Mouse / hover state. */
+        var mouseX = 0, mouseY = 0, mouseInside = false;
+        var hoverCol = -1, hoverRow = -1;
+        function updateHover() {
+            hoverCol = -1; hoverRow = -1;
+            if (!mouseInside) return;
+            /* front-to-back so the nearest cube wins the hit */
+            for (var row = ROWS - 1; row >= 0; row--) {
+                for (var col = COLS - 1; col >= 0; col--) {
+                    if (hitCube(col, row, cellVal(row * COLS + col), mouseX, mouseY)) {
+                        hoverCol = col; hoverRow = row; return;
+                    }
+                }
+            }
+        }
+
+        /* Draw one isometric cube: three faces + thin edge outline. */
+        function drawCube(col, row, h, pop) {
+            var ext = MIN_EXT + h * EXT_SPAN + pop;
+            var cx = isoX(col, row);
+            var gy = isoY(col, row);
+            var ty = gy - ext;
+            ramp(h);
+            var r = rgb[0], g = rgb[1], b = rgb[2];
+            var hot = pop > 0;          /* hovered → highlight top face */
+
+            /* Left face — medium. */
+            tCtx.fillStyle = shadeStr(r, g, b, 0.6);
+            tCtx.beginPath();
+            tCtx.moveTo(cx - hw, ty); tCtx.lineTo(cx, ty + hh);
+            tCtx.lineTo(cx, gy + hh); tCtx.lineTo(cx - hw, gy);
+            tCtx.closePath(); tCtx.fill();
+
+            /* Right face — darkest. */
+            tCtx.fillStyle = shadeStr(r, g, b, 0.38);
+            tCtx.beginPath();
+            tCtx.moveTo(cx, ty + hh); tCtx.lineTo(cx + hw, ty);
+            tCtx.lineTo(cx + hw, gy); tCtx.lineTo(cx, gy + hh);
+            tCtx.closePath(); tCtx.fill();
+
+            /* Top face — lightest (extra-bright when hovered). */
+            tCtx.fillStyle = hot ? shadeStr(r + 70, g + 70, b + 50, 1) : shadeStr(r, g, b, 1.05);
+            tCtx.beginPath();
+            tCtx.moveTo(cx, ty - hh); tCtx.lineTo(cx + hw, ty);
+            tCtx.lineTo(cx, ty + hh); tCtx.lineTo(cx - hw, ty);
+            tCtx.closePath();
+            tCtx.fill();
+
+            /* Edge outline to crisp up the voxel silhouette. */
+            tCtx.lineWidth = 1;
+            tCtx.strokeStyle = hot ? "rgba(255,230,180,0.9)" : "rgba(0,0,0,0.28)";
+            tCtx.stroke();
+        }
+
+        /* Draw the whole field back-to-front (row-major = increasing depth). */
+        function drawVoxels() {
+            tCtx.clearRect(0, 0, W, H);
+            tCtx.imageSmoothingEnabled = false;
+            for (var row = 0; row < ROWS; row++) {
+                for (var col = 0; col < COLS; col++) {
+                    var pop = (col === hoverCol && row === hoverRow) ? HOVER_POP : 0;
+                    drawCube(col, row, cellVal(row * COLS + col), pop);
+                }
+            }
+        }
+
+        var lastTime = 0;
+        var nextPulse = 0;
+        var rafId = 0;
+        function thermalFrame(now) {
+            rafId = requestAnimationFrame(thermalFrame);
+            if (!lastTime) lastTime = now;
+            var dt = now - lastTime;
+            lastTime = now;
+            if (dt > 80) dt = 80;       /* clamp tab-switch jumps */
+
+            if (!W || !H) sizeThermal(); /* in case layout wasn't ready at init */
+
+            if (!nextPulse) nextPulse = now + 1200 + Math.random() * 2400;
+            if (now >= nextPulse) {
+                autoPulse();
+                nextPulse = now + 1200 + Math.random() * 2400; /* ~1.2–3.6s */
+            }
+
+            updatePulses(dt);
+            step();
+            if (W && H) drawVoxels();
+        }
+        /* Run the whole loop (sim + render) only while the canvas is on-screen. */
+        function startThermal() {
+            if (!rafId) { lastTime = 0; nextPulse = 0; rafId = requestAnimationFrame(thermalFrame); }
+        }
+        function stopThermal() {
+            if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+        }
+
+        /* Track the cursor in canvas CSS-px space; hover is resolved here on
+           move (not every frame) to keep the render loop cheap. */
+        function setMouse(e) {
+            var rect = thermalCanvas.getBoundingClientRect();
+            mouseX = (e.clientX - rect.left) / rect.width * W;
+            mouseY = (e.clientY - rect.top) / rect.height * H;
+            mouseInside = true;
+            updateHover();
+        }
+        thermalCanvas.addEventListener("mousemove", setMouse);
+        thermalCanvas.addEventListener("mouseleave", function () { mouseInside = false; updateHover(); });
+
+        /* Click → raise the hovered bar one step (taller with every click, up
+           to HMAX) and send out a ripple like the automatic ones. */
+        thermalCanvas.addEventListener("click", function (e) {
+            setMouse(e);
+            if (hoverCol < 0) return;
+            var idx = hoverRow * COLS + hoverCol;
+            stack[idx] += CLICK_STEP;
+            if (stack[idx] > HMAX) stack[idx] = HMAX;
+            spawnRipple(hoverCol + 0.5, hoverRow + 0.5);
         });
 
-        function thermalLoop() {
-            simStep();
-            renderThermal();
-            requestAnimationFrame(thermalLoop);
+        if ("IntersectionObserver" in window) {
+            var thermalIO = new IntersectionObserver(function (entries) {
+                if (entries[0].isIntersecting) startThermal(); else stopThermal();
+            }, { threshold: 0 });
+            thermalIO.observe(thermalCanvas);
+        } else {
+            startThermal();
         }
-        requestAnimationFrame(thermalLoop);
     }
 
     /* ==================================================================

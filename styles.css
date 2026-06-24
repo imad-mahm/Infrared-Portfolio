@@ -458,23 +458,9 @@ body.intro-lock {
 }
 .about__inner {
     display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: clamp(2.5rem, 5vw, 5rem);
+    grid-template-columns: 300px 1fr;
+    gap: clamp(2rem, 5vw, 4rem);
     align-items: center;
-}
-.about__portrait {
-    position: relative;
-    aspect-ratio: 3 / 4;
-    overflow: hidden;
-    border: 1px solid rgba(255, 60, 60, 0.2);
-}
-.about__thermal {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    image-rendering: auto;
-    cursor: crosshair;
 }
 .about__text h2 {
     font-weight: 300;
@@ -489,6 +475,16 @@ body.intro-lock {
     font-size: 1rem;
     line-height: 1.7;
     max-width: 48ch;
+}
+
+/* ----------------------------------------------------------
+   Thermal voxel heatmap (sits beside the About text)
+   ---------------------------------------------------------- */
+.heatmap__canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    cursor: crosshair;
 }
 
 /* ----------------------------------------------------------
@@ -982,8 +978,8 @@ body.intro-lock {
         grid-template-columns: 1fr;
         gap: 2rem;
     }
-    .about__portrait {
-        max-width: 220px;
+    .about__viz {
+        max-width: 300px;
         margin: 0 auto;
     }
     .process__nodes {
